@@ -16,7 +16,7 @@ Platform assembly: E:\Spring 2015\ECE 4012\InterstellarDrums\InterstellarDrums_D
 Loading E:\Spring 2015\ECE 4012\InterstellarDrums\InterstellarDrums_Data\Managed\Assembly-UnityScript-firstpass.dll into Unity Child Domain
 Platform assembly: E:\Spring 2015\ECE 4012\InterstellarDrums\InterstellarDrums_Data\Managed\UnityEngine.UI.dll (this message is harmless)
 Loading E:\Spring 2015\ECE 4012\InterstellarDrums\InterstellarDrums_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
-- Completed reload, in  0.081 seconds
+- Completed reload, in  0.078 seconds
 desktop: 1366x768 50Hz; virtual: 1366x768 at 0,0
 <RI> Initializing input.
 XInput1_3.dll not found.
@@ -78,11 +78,4 @@ YOLO
  
 (Filename: C:/buildslave/unity/build/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 56)
 
-YOLO
- 
-(Filename: C:/buildslave/unity/build/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 56)
-
-YOLO
- 
-(Filename: C:/buildslave/unity/build/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 56)
-
+Platform assembly: E:\Spring 2015\ECE 4012\InterstellarDrums\InterstellarDrums_Data\Managed\System.dll (this message is harmless)
