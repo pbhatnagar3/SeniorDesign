@@ -15,12 +15,11 @@ public class BaseDrum : MonoBehaviour {
 		audio.PlayOneShot (DrumBeat, volumeScale);
 	}
 
-	void OnMouseEnter()
-	{
+	void OnCollisionEnter(Collision col){
+		Debug.Log("hey there drum");
 		play ();
-		Debug.Log("YOLO");
+		Debug.Log("hey there drum");
 	}
-
 	
 	// Update is called once per frame
 	void Update () {
