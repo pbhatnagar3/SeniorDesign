@@ -2,6 +2,7 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\bounce.js">
     <Files>
+      <File FileName="Assets\Scripts\bounce1.js" Line="1" Column="1" />
       <File FileName="Assets\Scripts\bounce.js" Line="4" Column="18" />
       <File FileName="Assets\Scripts\BaseDrum.cs" Line="1" Column="1" />
     </Files>

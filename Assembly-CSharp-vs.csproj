@@ -48,6 +48,7 @@
   <ItemGroup>
      <Compile Include="Assets\Scripts\AudioPlayer.cs" />
      <Compile Include="Assets\Scripts\BaseDrum.cs" />
+     <Compile Include="Assets\Scripts\CylinderController.cs" />
      <Compile Include="Assets\Scripts\Skybox.cs" />
      <Compile Include="Assets\Scripts\select.cs" />
      <None Include="Assets\Standard Assets\Skyboxes\_skybox info.txt" />
