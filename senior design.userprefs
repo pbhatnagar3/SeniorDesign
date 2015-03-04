@@ -1,11 +1,11 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\CylinderController.cs">
     <Files>
       <File FileName="Assets\Scripts\bounce1.js" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\bounce.js" Line="4" Column="18" />
+      <File FileName="Assets\Scripts\bounce.js" Line="1" Column="1" />
       <File FileName="Assets\Scripts\BaseDrum.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\CylinderController.cs" Line="72" Column="1" />
+      <File FileName="Assets\Scripts\CylinderController.cs" Line="9" Column="32" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
