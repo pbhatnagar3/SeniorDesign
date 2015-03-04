@@ -7,12 +7,13 @@ using System;
 public class CylinderController : MonoBehaviour {
 	//public Text info;
 	private Vector3 originPosition;
+	private const float zoff = 2;
 	public float speed = 0;
 	private float rotationSpeed;
 
-	private const float xfactor = 0.1f;
-	private const float yfactor = 0.1f;
-	private const float zfactor = 0.2f;
+	private const float xfactor = 0.005f;
+	private const float yfactor = 0.005f;
+	private const float zfactor = 0.01f;
 
 	//private Text info;
 
@@ -54,7 +55,7 @@ public class CylinderController : MonoBehaviour {
 			getObject();
 		}
 		if (detected [0] || detected [1]) {
-			Quaternion rotation = Quaternion.LookRotation(locations[1] - locations[0]);
+			Quaternion rotation = Quaternion.LookRotation(locations[0] - locations[1]);
 			rigidbody.MoveRotation(rotation);
 			rigidbody.MovePosition (locations[0] + originPosition);
 		} else if (detected [0]) {
@@ -121,7 +122,7 @@ public class CylinderController : MonoBehaviour {
 		char[] delimiterChars = {',',':'};
 		string[] words = line.Split (delimiterChars);
 		int sig = Convert.ToInt32 (words [1]);
-		Vector3 newLoc = new Vector3 (Convert.ToSingle (words [3]) * xfactor, Convert.ToSingle (words [5]) * yfactor, Convert.ToSingle (words [7]) * zfactor);
+		Vector3 newLoc = new Vector3 (Convert.ToSingle (words [3]) * xfactor, Convert.ToSingle (words [5]) * yfactor, Convert.ToSingle (words [7]) * zfactor+zoff);
 		if (sig == 1) {
 			move = newLoc - locations [sig];
 		}
