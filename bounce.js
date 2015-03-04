@@ -28,7 +28,7 @@ function itembounce () {
 
 	//Debug.Log("in itembounce");
 	while(bouncing) {
-		yield WaitForSeconds(.7);
+		yield WaitForSeconds(1.2);
 		itemBounceUp = false;
 		yield WaitForSeconds(1.2);
 		itemBounceUp = true;

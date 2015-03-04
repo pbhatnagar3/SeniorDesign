@@ -48,6 +48,7 @@
   <ItemGroup>
      <Compile Include="Assets\Scripts\bounce.js" />
      <Compile Include="Assets\Scripts\bounce1.js" />
+     <Compile Include="Assets\Scripts\bounce_backup.js" />
      <None Include="Assets\Standard Assets\Skyboxes\_skybox info.txt" />
  <Reference Include="Assembly-UnityScript-firstpass">
  <HintPath>C:/senior design/Library/ScriptAssemblies/Assembly-UnityScript-firstpass.dll</HintPath>
