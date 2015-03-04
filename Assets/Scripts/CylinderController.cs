@@ -7,7 +7,7 @@ using System;
 public class CylinderController : MonoBehaviour {
 	public Text info;
 	private Vector3 originPosition;
-	private const float zoff = 2;
+	public float zoff = 2;
 	public float speed = 0;
 	private float rotationSpeed;
 
