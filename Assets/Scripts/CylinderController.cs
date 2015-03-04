@@ -5,15 +5,15 @@ using System.IO.Ports;
 using System;
 
 public class CylinderController : MonoBehaviour {
-	//public Text info;
+	public Text info;
 	private Vector3 originPosition;
 	private const float zoff = 2;
 	public float speed = 0;
 	private float rotationSpeed;
 
-	private const float xfactor = 0.005f;
-	private const float yfactor = 0.005f;
-	private const float zfactor = 0.01f;
+	private const float xfactor = 0.01f;
+	private const float yfactor = 0.01f;
+	private const float zfactor = 0.02f;
 
 	//private Text info;
 
@@ -54,8 +54,8 @@ public class CylinderController : MonoBehaviour {
 		for (int i = 0; i < objNumber; i++) {
 			getObject();
 		}
-		if (detected [0] || detected [1]) {
-			Quaternion rotation = Quaternion.LookRotation(locations[0] - locations[1]);
+		if (detected [0] && detected [1]) {
+			Quaternion rotation = Quaternion.LookRotation(locations[1] - locations[0]);
 			rigidbody.MoveRotation(rotation);
 			rigidbody.MovePosition (locations[0] + originPosition);
 		} else if (detected [0]) {
@@ -65,7 +65,7 @@ public class CylinderController : MonoBehaviour {
 			rigidbody.MovePosition(locations[0] + originPosition);
 		}
 
-		//info.text = "x " + locations [0].x + " y " + locations [0].y + " z " + locations [0].z + "\nx " + locations [1].x + " y " + locations [1].y + " z " + locations [1].z ;
+		info.text = "x " + locations [0].x + " y " + locations [0].y + " z " + locations [0].z + "\nx " + locations [1].x + " y " + locations [1].y + " z " + locations [1].z ;
 	}
 
 	void FixedUpdate() // for acceleration data
