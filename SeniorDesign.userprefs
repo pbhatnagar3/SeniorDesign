@@ -1,8 +1,12 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\CylinderController.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\Pixy.cs">
     <Files>
-      <File FileName="Assets\Scripts\CylinderController.cs" Line="8" Column="19" />
+      <File FileName="Assets\hello.cs" Line="30" Column="1" />
+      <File FileName="Assets\Scripts\Pixy.cs" Line="26" Column="43" />
+      <File FileName="Assets\LOOM Framework\Examples\Scripts\Simple Implementations\SimpleThreadingExample.cs" Line="30" Column="44" />
+      <File FileName="Assets\LOOM Framework\LOOM\Internal\SingleThreadStarter.cs" Line="57" Column="24" />
+      <File FileName="Assets\Scripts\CylinderController.cs" Line="131" Column="3" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
