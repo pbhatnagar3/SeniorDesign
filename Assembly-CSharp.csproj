@@ -68,6 +68,8 @@
      <Compile Include="Assets\Scripts\ActivateFire.cs" />
      <Compile Include="Assets\Scripts\AudioPlayer.cs" />
      <Compile Include="Assets\Scripts\CylinderController.cs" />
+     <Compile Include="Assets\Scripts\NewMulti.cs" />
+     <Compile Include="Assets\Scripts\Pixy.cs" />
      <Compile Include="Assets\Scripts\PlaySound.cs" />
      <Compile Include="Assets\Scripts\Skybox.cs" />
      <Compile Include="Assets\Scripts\SkyboxSelect.cs" />
