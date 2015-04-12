@@ -7,7 +7,7 @@ using System.Collections;
 
 
 public class NewMulti : MonoBehaviour {
-	public float zScale = 0;
+	//public float zScale = 0;
 	private bool notDestroyed = true;
 	//public float zoff = 2;
 	//public int maxThreads = 2;
@@ -64,7 +64,7 @@ public class NewMulti : MonoBehaviour {
 		//		sphere = GameObject.Find ("Sphere");
 	}
 	void OnGUI() {
-		zScale = GUI.HorizontalSlider(new Rect(25, 25, 100, 30), zScale, 0.0F, 0.01F);
+		//zScale = GUI.HorizontalSlider(new Rect(25, 25, 100, 30), zScale, 0.0F, 0.01F);
 	}
 	void Update(){
 		// move the gameobject
@@ -88,7 +88,7 @@ public class NewMulti : MonoBehaviour {
 		Cheese.Pixy pixy = new Cheese.Pixy (orgPos, orgRot) ;
 		Vector3 updateLoc;
 		Quaternion rotation;
-		int nAve = 1;
+		int nAve = 2;
 		int first = nAve;
 		float offSum = 0;
 		while (notDestroyed) {
@@ -115,7 +115,7 @@ public class NewMulti : MonoBehaviour {
 			//Debug.Log ("Where am I (" + pixy.locations [0].x + " " + pixy.locations [0].y + " " + pixy.locations [0].z+")");
 			//Loom.DispatchToMainThread(() => Debug.Log("I waited atleast 30 frames. Whats the current frameCount? : " + Time.frameCount), true);
 			//Loom.DispatchToMainThread((object cam) => Debug.Log("Where am I (" + ((Cheese.Pixy)cam).locations [0].x + " " +((Cheese.Pixy)cam).locations [0].y + " " +((Cheese.Pixy)cam).locations [0].z+")"), pixy,true,true);
-			Loom.DispatchToMainThread((object loc) => Debug.Log("Where am I (" + ((Vector3)loc).x + " " +((Vector3)loc).y + " " +((Vector3)loc).z+")"), updateLoc,true,true);
+			Loom.DispatchToMainThread((object loc) => Debug.Log("Where am I (" + ((Vector3)loc).x + " " +((Vector3)loc).y + " " +((Vector3)loc).z+")"), pixy.locations[0],true,true);
 			Loom.DispatchToMainThread((object loc2) => GameObject.Find("Sphere").rigidbody.MovePosition((Vector3)loc2), updateLoc,true,true);
 			if (first > 0)
 				{

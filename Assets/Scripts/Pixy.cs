@@ -18,13 +18,17 @@ public class Pixy {
 	//public Text info;
 	public Vector3 originPosition;
 		public Quaternion originRotation;
-	public float zoff = 2;
+	public float zoff = 0;
 	public float speed = 0;
 	private float rotationSpeed;
 	
-	private const float xfactor = -0.02f;
-	private const float yfactor = -0.01f;
-	public float zfactor = -.01F;
+	private const float xfactor = -0.001f;
+	private const float yfactor = -0.001f;
+	public float zfactor = -.001F;
+
+		//private const float xfactor = -1;
+		//private const float yfactor = -1;
+		//public float zfactor = -1F;
 	
 	//private Text info;
 	
@@ -36,6 +40,7 @@ public class Pixy {
 	public Vector3[] moves = new Vector3[ledN];
 	
 	SerialPort myPort = new SerialPort("COM3",9600);
+		//SerialPort myPort = new SerialPort("COM3",115200);
 
 	// Use this for initialization
 		public Pixy()
