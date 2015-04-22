@@ -39,7 +39,7 @@ public class Pixy {
 	public bool[] detected = new bool[ledN];
 	public Vector3[] moves = new Vector3[ledN];
 	
-	SerialPort myPort = new SerialPort("COM3",9600);
+	public SerialPort myPort = new SerialPort("COM4",115200);
 		//SerialPort myPort = new SerialPort("COM3",115200);
 
 	// Use this for initialization
@@ -48,9 +48,9 @@ public class Pixy {
 			try{
 				myPort.Open ();
 			}
-			catch (Exception e)
+			catch 
 			{
-				
+				Debug.Log ("PIXY FAIL");
 			}
 			originPosition = new Vector3(0,0,0);
 			originRotation = Quaternion.identity;
@@ -69,7 +69,7 @@ public class Pixy {
 		}
 		catch (Exception e)
 		{
-			
+				Debug.Log ("PIXY FAIL");
 		}
 			originPosition = orgPos;
 			originRotation = orgRot;
@@ -84,9 +84,6 @@ public class Pixy {
 	}
 	
 	// Update is called once per frame
-	void Update () {
-	
-	}
 
 	public void pixyThread()
 	{
@@ -105,6 +102,7 @@ public class Pixy {
 
 		
 		String readPort(){
+			Debug.Log ("TRYING");
 			String data = "";
 			if (myPort.IsOpen) {
 				try {
@@ -152,5 +150,11 @@ public class Pixy {
 			return sig;
 			
 		}
-	}
+	
+
+		public void closeSerialPort()
+		{
+			myPort.Close();
+		}
+}
 }

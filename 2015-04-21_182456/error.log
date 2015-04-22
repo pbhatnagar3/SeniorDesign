@@ -1,0 +1,36 @@
+Unity Player [version: Unity 4.6.4f1_99f88340878d]
+
+OVRDisplay64.dll caused an Access Violation (0xc0000005)
+  in module OVRDisplay64.dll at 0033:a4426449.
+
+Error occurred at 2015-04-21_182458.
+C:\Users\shurjobanerjee\Documents\SeniorDesign-master\swag.exe, run by shurjobanerjee.
+27% memory in use.
+16269 MB physical memory [11820 MB free].
+18701 MB paging file [14099 MB free].
+134217728 MB user address space [134217430 MB free].
+Read from location 0072007d caused an access violation.
+
+Context:
+RDI:    0x067ae650  RSI: 0x085e4e80  RAX:   0x0136d230
+RBX:    0x085e6210  RCX: 0x0136cf70  RDX:   0x00720065
+RIP:    0xa4426449  RBP: 0x00000000  SegCs: 0x00000033
+EFlags: 0x00010246  RSP: 0x010aeee8  SegSs: 0x0000002b
+R8:    0x0136cf70  R9: 0x00000000  R10:   0xa4487080
+R11:    0x085e6210  R12: 0x0138dcf8  R13:   0x085a82f8
+R14:    0x0138e2d0  R15: 0x0136e1e0
+
+Bytes at CS:EIP:
+48 8b 52 18 0f 1f 00 48 39 50 20 73 06 48 8b 40 Module 1
+C:\Windows\SYSTEM32\xinput1_3.dll
+Image Base: 0x00400000  Image Size: 0x0001e000
+File Size:  107368      File Time:  2007-04-04_185422
+Version:
+   Company:    Microsoft Corporation
+   Product:    Microsoft® DirectX for Windows®
+   FileDesc:   Microsoft Common Controller API
+   FileVer:    9.18.944.0
+   ProdVer:    9.18.944.0
+
+
+== [end of error.log] ==

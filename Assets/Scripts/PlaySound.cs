@@ -16,9 +16,9 @@ public class PlaySound : MonoBehaviour {
 	}
 
 	void OnCollisionEnter(Collision col){
-		Debug.Log("hey there drum");
+//		Debug.Log("hey there drum");
 		play ();
-		Debug.Log("hey there drum");
+//		Debug.Log("hey there drum");
 	}
 	
 	// Update is called once per frame

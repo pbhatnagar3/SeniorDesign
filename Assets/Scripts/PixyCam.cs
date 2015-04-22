@@ -25,6 +25,8 @@ namespace AirVisual{
 		private const float xfactor = -0.001f;
 		private const float yfactor = -0.001f;
 		public float zfactor = -.001F;
+
+		bool successfulPixyRead = false;
 		
 		//private const float xfactor = -1;
 		//private const float yfactor = -1;
@@ -39,18 +41,20 @@ namespace AirVisual{
 		public bool[] detected = new bool[ledN];
 		public Vector3[] moves = new Vector3[ledN];
 		
-		SerialPort myPort = new SerialPort("COM3",9600);
+		public SerialPort myPort = new SerialPort("COM4",115200);
 		//SerialPort myPort = new SerialPort("COM3",115200);
 		
 		// Use this for initialization
 		public PixyCam()
 		{
+
 			try{
 				myPort.Open ();
+				Debug.Log ("PIXY opened correctly");
 			}
 			catch (Exception e)
 			{
-				
+				Debug.Log ("PIXY couldn't be opened");
 			}
 			//originPosition = new Vector3(0,0,0);
 			//originRotation = Quaternion.identity;
@@ -61,7 +65,7 @@ namespace AirVisual{
 				moves[i] = new Vector3(0,0,0);
 			}
 			//move = new Vector3 (0, 0, 0);
-			myPort.ReadTimeout = 100;
+			myPort.ReadTimeout = 40;
 		}
 		/*public Pixy (Vector3 orgPos, Quaternion orgRot) {
 			try{
@@ -105,15 +109,16 @@ namespace AirVisual{
 		
 		
 		String readPort(){
+			successfulPixyRead = false;
 			String data = "";
 			if (myPort.IsOpen) {
 				try {
 					//data = myPort.ReadLine ();
 					data = myPort.ReadTo("\n\r");
-					//info.text = "line read";
-				} catch (Exception e)
-				{
-					//info.text = "port not read";
+					successfulPixyRead = true;
+					Debug.Log("Read success");
+				} catch
+				{					
 				}
 			}
 			return data;
@@ -151,6 +156,16 @@ namespace AirVisual{
 			detected [sig] = true;
 			return sig;
 			
+		}
+
+		public void closeSerialPort()
+		{
+			myPort.Close();
+		}
+
+		public bool successfulRead()
+		{
+			return successfulPixyRead;
 		}
 	}
 }

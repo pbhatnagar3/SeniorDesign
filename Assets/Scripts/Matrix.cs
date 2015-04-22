@@ -27,6 +27,12 @@ public class Matrix  {
 		{
 			return (rows == cols);
 		}
+
+		public double this[int iRow]      //Access vectors with single index
+		{				
+			get { return mat[iRow, 0]; }
+			set { mat[iRow, 0] = value; }
+		}
 		
 		public double this[int iRow, int iCol]      // Access this matrix as a 2D array
 		{
@@ -206,10 +212,21 @@ public class Matrix  {
 	    //I don't need this/wasn't working = butchered it. Sorry Ivan :/
 		public static Matrix RandomMatrix(int iRows, int iCols, double dispersion)       // Function generates the random matrix
 		{
+			System.Random t = new System.Random ();
 			Matrix matrix = new Matrix(iRows, iCols);
 			for (int i = 0; i < iRows; i++)
 				for (int j = 0; j < iCols; j++)
-					matrix[i, j] = dispersion*UnityEngine.Random.value;
+					matrix[i, j] = dispersion*t.NextDouble();
+			return matrix;
+		}
+
+		public static Matrix RandomMatrix(int iRows, int iCols, double a, double b)       // Function generates the random matrix
+		{
+			System.Random t = new System.Random ();
+			Matrix matrix = new Matrix(iRows, iCols);
+			for (int i = 0; i < iRows; i++)
+				for (int j = 0; j < iCols; j++)
+					matrix[i, j] = (b-a)*t.NextDouble() + a;
 			return matrix;
 		}
 

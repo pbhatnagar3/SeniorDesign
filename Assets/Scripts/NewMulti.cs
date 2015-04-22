@@ -3,297 +3,376 @@ using UnityEngine;
 using Frankfort.Threading;
 using System.Threading;
 using System.Collections;
+using KalmanFilterImplementation;
+using System.IO.Ports;
+using MatrixLibrary;
+using SensorReadings;
+using PixyFileReader;
+using StereoVision;
 
 
+namespace MultiThreadImplementation{
+	public class NewMulti : MonoBehaviour {
 
-public class NewMulti : MonoBehaviour {
-	//public float zScale = 0;
-	private bool notDestroyed = true;
-	//public float zoff = 2;
-	//public int maxThreads = 2;
-	//public int TestWorkerObjects = 4;
-	//public int minCalculations = 10;
-	//public int maxCalculations = 50;a
-	//public float abortAfterSeconds = 3f;	
-	public Thread pixyThread;
-	public Thread kalmanThread;
-	//just for testing purpose
-	public Vector3[] locations = new Vector3[AirVisual.PixyCam.ledN]; //{tipL,endL,tipR,endR}
-	public bool[] detected = new bool[AirVisual.PixyCam.ledN];
-	public Vector3[] moves = new Vector3[AirVisual.PixyCam.ledN];
-	private object locker = new object();
-	//private Object[] originTrans = new Object[2];
-	//private ThreadPoolScheduler myThreadScheduler;
-	//private Cheese.Pixy pixy;
-	
-	// Use this for initialization
-	//	void Start () {
-	//	
-	//	}
+		int	POSX = 0, POSY = 1 , POSZ = 2, VELX = 3, VELY = 4, VELZ = 5,
+		ACCX = 6, ACCY = 7, ACCZ = 8, ANG_X = 9, ANG_Y = 10, ANG_Z = 11,
+		VEL_ANGX = 12, VEL_ANGY = 13, VEL_ANGZ = 14, ANG_DDX = 15, ANG_DDY = 16, ANG_DDZ = 17;
 
-	MatrixLibrary.Matrix pixyData; // shared data between worker threads
+		int MPOSX = 0, MPOSY = 1, MPOSZ = 2, MACCX = 3, MACCY = 4, MACCZ = 5, MVEL_ANGX = 6, MVEL_ANGY = 7, MVEL_ANGZ = 8;
 
-	
-	void OnDestroy()
-	{
-		// to terminate the worker threads
-		notDestroyed = false;
-	}
-	
-	
-	void Start()
-	{
-		pixyData = MatrixLibrary.Matrix.ZeroMatrix(1,AirVisual.PixyCam.ledN * 4);
-		// just for testing purpose
-		/*
-		for (int i = 0; i<AirVisual.PixyCam.ledN; i++) {
-			locations[i] = new Vector3(0,0,0);
-			detected[i] = false;
-			moves[i] = new Vector3(0,0,0);
-		}*/
-		
-		//Application.targetFrameRate = 25;
-		
-		// start worker threads
-		pixyThread = Loom.StartSingleThread(pixyRoutine, System.Threading.ThreadPriority.Normal, true);
-		kalmanThread = Loom.StartSingleThread (kalmanRoutine, System.Threading.ThreadPriority.Normal, true);
-	}
-	
-	void Update(){
-		
-	}
+		//Store Pixy positions
+		Vector3 PixyPosition1_1 = new Vector3 (0, 0, 0);
+		Vector3 PixyPosition1_2 = new Vector3 (0, 0, 0);
+		Vector3 PixyPosition2_1 = new Vector3 (0, 0, 0);
+		Vector3 PixyPosition2_2 = new Vector3 (0, 0, 0);
 
-	
-	void pixyRoutine(){
-		AirVisual.PixyCam pixy = new AirVisual.PixyCam () ;
-		int nAve = 2;
-		int first = nAve;
-		float offSum = 0;
-		while (notDestroyed) {
-			pixy.pixyThread();
+		//Update final locations of sticks
+		public Vector3 stick1Location1;
+		public Vector3 stick1Location2;
 
-			// modifying the matrix
-			lock(locker)
-			{
-				for (int i =0; i< AirVisual.PixyCam.ledN;i++)
-				{
-					if (pixy.detected[i])
-					{
-						// if the corresponding led is detected
-						pixyData[0,4*i] = 1;
-						// changed the x,y,z data
-						pixyData[0,4*i+1] = pixy.locations[i].x;
-						pixyData[0,4*i+2] = pixy.locations[i].y;
-						pixyData[0,4*i+3] = pixy.locations[i].z - pixy.zoff;
-						Loom.DispatchToMainThread((object loc) => Debug.Log("Where am I (" + ((Vector3)loc).x + " " +((Vector3)loc).y + " " +((Vector3)loc).z+")"), pixy.locations[0],true,true);
+		//Pixy 
+		public Vector3 rotPixy1;
+		public Vector3 rotPixy2;
 
-					} else{
-						// if not detected
-						pixyData[0,4*i] = -1;
-					}
-				}
+		bool usePixy, useAccelerometer, useGyroScopes;
+
+		bool led1, led2, led3, led4;
+
+		// Exit threads when class ends
+		private bool notDestroyed;
+
+		//Actual threads used
+		public Thread pixyThread;
+		public Thread kalmanThread;
+		public Thread readSensorsThread;
+		public Thread triangulationThread;
+
+		//Mutexes that will need to be set - ignoring this for now = bad programming practice
+		private object pixyLocker;
+		private object IMULocker;
+
+		//Available data
+		public bool IMUAvailable = false;
+		public bool pixyAvailable = false;
+
+		//Matrices for Kalman
+		public Matrix X, M;
+		public double dt;
+		//Separting in position, acceleration and gyroscope matrices
+		public Matrix Xp, Mp;
+		public Matrix Xa, Ma;
+		public Matrix Xg, Mg;
+
+		//Store Variance Matrices
+		Matrix iniVariancePos;		
+		Matrix iniVarianceBig;
+		Matrix iniVarianceAcc;
+
+		//Store initial position of rigiddbody
+		Vector3 iniPosition;
+
+		//Update R and Q
+		double r,q;
+
+		// Create objects that will read pixy, sensors and calculate triangulation
+		PixyFileReader.Program readPixies;
+		StereoVision.StereoCamera cameraTriangulation;
+		SensorReadings.ReadSensors rs;
+
+		public NewMulti(Matrix X, Matrix M, double dt, Matrix iniVariancePos, Matrix iniVarianceBig,
+		                bool usePixy, bool useAccelerometer, bool useGyroScopes,
+		                bool led1, bool led2, bool led3, bool led4, double r, double q,
+		                string com)
+		{
+			//Set objects for reading sensors
+			readPixies = new PixyFileReader.Program ();			
+			cameraTriangulation = new StereoVision.StereoCamera ();
+			rs = new ReadSensors (com);
+
+			//Update initial positon vector
+			iniPosition = new Vector3 ((float)X [0], (float)X [1], (float)X [2]);
+
+			//Which LEDs do we track - comes from the Main Thread
+			this.led1 = led1;
+			this.led2 = led2;
+			this.led3 = led3;
+			this.led4 = led4;
+
+			//What data should we update? i.e. Positional, rotation or both
+
+			//Position
+			this.usePixy = usePixy;
+			//Not really used right now
+			this.useAccelerometer = useAccelerometer; 
+			//Rotation
+			this.useGyroScopes = useGyroScopes;
+
+			//Set initial params
+			this.X = X;
+			this.M = M;
+			this.dt = dt;
+
+			// Set Variance Matrices
+			this.iniVariancePos = iniVariancePos;
+			this.iniVarianceBig = iniVarianceBig;
+
+			this.r = r;
+			this.q = q;
+
+
+			//Setup state and measurement vectors for smaller Kalman filters
+
+			//Acceleration based kalman filter
+			Xa = Matrix.ZeroMatrix (9, 1);
+			//Overwrite Xa
+			for (int i=0; i<9; i++) {
+				Xa [i] = X [i];
 			}
+			Ma = Matrix.ZeroMatrix (3, 1);
 
-			if (first > 0)
-			{
-				offSum = offSum + pixy.locations[0].z;
-				first--;
-				if (first <= 0)
-				{
-					pixy.zoff = offSum/nAve;
-				}
+
+			//Gyroscope based kalman filter
+			Xg = Matrix.ZeroMatrix (9, 1);
+			for (int i=9; i<18; i++) {
+				Xg[i-9] = X [i];
 			}
+			Mg = Matrix.ZeroMatrix (3, 1);
+
+
+			//Positon based kalman filter
+			Xp = Matrix.ZeroMatrix (9, 1);
+			for (int i=0; i<9; i++) {
+				Xp[i] = X [i];
+			}
+			Mp = Matrix.ZeroMatrix (3, 1);
+
+			//No data is available at the beginning
+			IMUAvailable = false;
+			pixyAvailable = false;
+			notDestroyed = true;
+
+			//Start the threads
+			Start ();
+		}
+		
+		public void OnDestroy()
+		{
+			// to terminate the worker threads
+			notDestroyed = false;
+		}
+		
+		
+		void Start()
+		{
+			// start worker threads
+			if (usePixy)
+				pixyThread = Loom.StartSingleThread(pixyRoutine, System.Threading.ThreadPriority.Normal, true);
+			if (useGyroScopes || useAccelerometer)
+				readSensorsThread = Loom.StartSingleThread (readSensorsRoutine, System.Threading.ThreadPriority.Normal, true);
+
+			//Runs kalman thread
+			kalmanThread = Loom.StartSingleThread (kalmanRoutine, System.Threading.ThreadPriority.Normal, true);
+
+			//Runs triangulation thread
+			triangulationThread = Loom.StartSingleThread (triangulationRoutine, System.Threading.ThreadPriority.Normal, true);
 		}
 
-	}
 
+		void readSensorsRoutine()
+		{
+			Matrix temp;
+			while (notDestroyed) {
 
+				temp = rs.getSensorData();
 
-	void kalmanRoutine()
-	{
-		// set up local variables below
-		// local variable holding pixy location data
-		MatrixLibrary.Matrix locMatrix = MatrixLibrary.Matrix.ZeroMatrix(1,AirVisual.PixyCam.ledN * 4); // AirVisual.PixyCam.ledN is a constant whose value is 4
-
-		// The following 2 lines get the original status (position and rotation) of the drumstick in unity
-		/*
-		Vector3 originPosition = (Vector3)  Loom.DispatchToMainThreadReturn(()=>GameObject.Find ("Sphere").transform.position);
-		Quaternion originRotation = (Quaternion)  Loom.DispatchToMainThreadReturn(()=>GameObject.Find ("Sphere").transform.rotation);
-		
-		Vector3 updateLoc;
-		Quaternion rotation;
-		*/
-
-		// the main loop of the thread
-		while (notDestroyed) {
-
-			lock(locker)
-			{
-				// copy the pixy location data from the shared matrix to a local matrix
-				for (int i = 0; i<AirVisual.PixyCam.ledN * 4; i++) {
-					locMatrix[0,i] = pixyData[0,i];
-					/**
-					 * locMatrix is the 1x16 local matrix containing the pixy location data {tipL,endL,tipR,endR}
-					 * data format:
-					 * 	[tipL.detected, tipL.x, tipL.y,tipL.z,
-					 *	 endL.detected, endL.x, endL.y,endL.z,
-					 *	 tipR.detected, tipR.x, tipR.y,tipR.z,
-					 *	 endR.detected, endR.x, endR.y,endR.z]
-					 * where detected >= 0 indicates corresponding LED detected
-					 * detected < 0 indicates corresponding LED not detected
-					*/
-				}
-			}
-
-			// TODO kalman filter calculation below
-			// The pixy location data can be access locally through the matrix locMatrix (documentated above)
-			// You can redefine locMatrix as you like
-			/* To post change to the main thread (e.g. change the location of the drum stick),
-			 * use the function Loom.DispatchToMainThread();
-			 * For example: (for more example see the use of the function in codes above and below)
-			 * Loom.DispatchToMainThread(
-			 * 		(object rot) => GameObject.Find("Sphere").rigidbody.MoveRotation((Quaternion) rot),
-			 * 		rotation,
-			 * 		true,
-			 * 		true
-			 * );
-			 * Explaination:
-			 * You put the function you want to call after "=>" in the first parameter
-			 * rotation		the second parameter is the local variable you want to pass to the function in the first parameter
-			 * rot			in the first parameter is just a new name for the parameter you pass in 
-			 * 				(don't forget to cast it back to the correct type when you use it in the function call)
-			 * and just keep the last 2 parameters as true
-			 * 
-			 * Also, you may want to keep the GameObject.Find("Sphere") part in the function call to access the drumstick object
-			 * /
-			
-
-
-
-
-
-
-
-
-
-
-			/* Testing data exchange between 2 worker thread
-			// the following lines access the pixyData variable
-			lock(locker)
-			{
-				for (int i = 0; i<AirVisual.PixyCam.ledN; i++) {
-					locations[i].x = (float) pixyData[0,4*i+1];
-					locations[i].y = (float) pixyData[0,4*i+2];
-					locations[i].z = (float) pixyData[0,4*i+3];
-					detected[i] = (pixyData[0,4*i] >= 0);
-				}
-			}
-
-			
-			if (detected[0] || detected[1])
-			{
-				if (detected [0] && detected [1]) {
-					rotation = Quaternion.LookRotation(locations[1] - locations[0])*originRotation;
-					Loom.DispatchToMainThread((object rot) => GameObject.Find("Sphere").rigidbody.MoveRotation((Quaternion) rot), rotation,true,true);
-					updateLoc = locations[0] + originPosition;
-				} else if (detected [0]) {
-					locations[1] = locations[1] +moves[0];
-					updateLoc = locations[0] + originPosition;
-				} else  {
-					locations[0] = locations[0] + moves[1];
-					updateLoc = locations[0] + originPosition;
-				}
-				Loom.DispatchToMainThread((object loc) => Debug.Log("Where am I (" + ((Vector3)loc).x + " " +((Vector3)loc).y + " " +((Vector3)loc).z+")"), locations[0],true,true);
-				Loom.DispatchToMainThread((object loc2) => GameObject.Find("Sphere").rigidbody.MovePosition((Vector3)loc2), updateLoc,true,true);
-
-			}*/
-		}
-	}
-
-	// one worker thread version
-	/*void pixyRoutine(){
-		Vector3 originPosition = (Vector3)  Loom.DispatchToMainThreadReturn(()=>GameObject.Find ("Sphere").transform.position);
-		Quaternion originRotation = (Quaternion)  Loom.DispatchToMainThreadReturn(()=>GameObject.Find ("Sphere").transform.rotation);
-		
-		Vector3 updateLoc;
-		Quaternion rotation;
-		AirVisual.PixyCam pixy = new AirVisual.PixyCam () ;
-		int nAve = 2;
-		int first = nAve;
-		float offSum = 0;
-		while (notDestroyed) {
-			pixy.pixyThread();
-			
-			// modifying the matrix
-			for (int i =0; i< AirVisual.PixyCam.ledN;i++)
+				//Update acceleration and gyroscope readings of large Kalman Filter
+				for (int i=3; i<9; i++)
 				{
-					if (pixy.detected[i])
-					{
-						// if the corresponding led is detected
-						pixyData[0,4*i] = 1;
-						// changed the x,y,z data
-						pixyData[0,4*i+1] = pixy.locations[i].x;
-						pixyData[0,4*i+2] = pixy.locations[i].y;
-						pixyData[0,4*i+3] = pixy.locations[i].z - pixy.zoff;
-						//Loom.DispatchToMainThread((object loc) => Debug.Log("Where am I (" + ((Vector3)loc).x + " " +((Vector3)loc).y + " " +((Vector3)loc).z+")"), pixy.locations[0],true,true);
+					M[i] = temp[i];
+				}
+
+				//Update an acceleration measurement vector so to speak
+				if (useAccelerometer){
+					Ma[0] = M[MACCX];
+					Ma[1] = M[MACCY];
+					Ma[2] = M[MACCZ];
+				}
+
+				//Update gyroscope values
+				if (useGyroScopes){
+					Mg[0] = M[MVEL_ANGX];
+					Mg[1] = M[MVEL_ANGY];
+					Mg[2] = M[MVEL_ANGZ];
+				}
+
+				IMUAvailable = rs.successfulRead();
+			}
+
+			//This is stupid. Oh well
+			rs.closeSerialPort ();
+			UnityEngine.Debug.Log ("Serial port closed");
+		}
+
+		
+		void pixyRoutine(){
 						
-					} else{
-						// if not detected
-						pixyData[0,4*i] = -1;
-					}
-				}
-			
-			// the following lines access the pixyData variable
+			while (notDestroyed) {
 
-				for (int i = 0; i<AirVisual.PixyCam.ledN; i++) {
-					locations[i].x = (float) pixyData[0,4*i+1];
-					locations[i].y = (float) pixyData[0,4*i+2];
-					locations[i].z = (float) pixyData[0,4*i+3];
-					detected[i] = (pixyData[0,4*i] >= 0);
-				}
-			
-			
-			//pixy.zfactor = -1 * zScale;
-			if (detected[0] || detected[1])
-			{
-				if (detected [0] && detected [1]) {
-					rotation = Quaternion.LookRotation(locations[1] - locations[0])*originRotation;
-					Loom.DispatchToMainThread((object rot) => GameObject.Find("Sphere").rigidbody.MoveRotation((Quaternion) rot), rotation,true,true);
-					//GameObject.Find("Sphere").rigidbody.MoveRotation(rotation);
-					//GameObject.Find("Sphere").rigidbody.MovePosition (pixy.locations[0] + pixy.originPosition);
-					updateLoc = locations[0] + originPosition;
-				} else if (detected [0]) {
-					//GameObject.Find("Sphere").rigidbody.MovePosition (pixy.locations[0] + pixy.originPosition);
-					locations[1] = locations[1] +moves[0];
-					updateLoc = locations[0] + originPosition;
-				} else  { //(pixy.detected [1])
-					locations[0] = locations[0] + moves[1];
-					//GameObject.Find("Sphere").rigidbody.MovePosition(pixy.locations[0] + pixy.originPosition);
-					updateLoc = locations[0] + originPosition;
-				}
-				//Debug.Log ("Where am I (" + pixy.locations [0].x + " " + pixy.locations [0].y + " " + pixy.locations [0].z+")");
-				//Loom.DispatchToMainThread(() => Debug.Log("I waited atleast 30 frames. Whats the current frameCount? : " + Time.frameCount), true);
-				//Loom.DispatchToMainThread((object cam) => Debug.Log("Where am I (" + ((Cheese.Pixy)cam).locations [0].x + " " +((Cheese.Pixy)cam).locations [0].y + " " +((Cheese.Pixy)cam).locations [0].z+")"), pixy,true,true);
-				Loom.DispatchToMainThread((object loc) => Debug.Log("Where am I (" + ((Vector3)loc).x + " " +((Vector3)loc).y + " " +((Vector3)loc).z+")"), locations[0],true,true);
-				Loom.DispatchToMainThread((object loc2) => GameObject.Find("Sphere").rigidbody.MovePosition((Vector3)loc2), updateLoc,true,true);
-				
-			}
-			if (first > 0)
-			{
-				offSum = offSum + pixy.locations[0].z;
-				first--;
-				if (first <= 0)
-				{
-					pixy.zoff = offSum/nAve;
-				}
+				readPixies.readFile ();
+//
+				//Update measurement vector
+				M[POSX] = stick1Location2.x/-1000;
+				M[POSY] = stick1Location2.y/-1000;
+				M[POSZ] = stick1Location2.z/-1000;
+
+				//update positional kalman filter
+				Mp[POSX] = M[POSX];
+				Mp[POSY] = M[POSY];
+				Mp[POSZ] = M[POSZ];
+
+				//Keep track of successful read
+				pixyAvailable = readPixies.successfulRead();
 			}
 		}
 
-	}
 
-	void kalmanRoutine()
-	{
 
+		void kalmanRoutine()
+		{
+			//Position or acceleration based kalman filter
+			Kalman kalman_pos = new Kalman(iniVariancePos, dt, dt, r, q);
+			//Orientation based kalman filter
+			KalmanOrientation kalman_or = new KalmanOrientation (iniVariancePos, dt, r, q);
+
+			//Update Kalman filter for all params
+			Kalman_Pos_Or finalKalman = new Kalman_Pos_Or (iniVarianceBig, dt, r, q);
+
+			// the main loop of the thread
+
+			while (notDestroyed) {
+
+				//Update Complete Kalman filter
+				X = finalKalman.predictionStep(X);
+				X = finalKalman.updateStep(X, M);
+
+				//Update position Kalman filter
+				Xp = kalman_pos.updateStepPosition(Xp, Mp);
+			    Xp = kalman_pos.predictionStepPosition(Xp);
+
+				//Update acceleration Kalman fitler
+				Xa = kalman_pos.predictionStepAcceleration(Xa);
+				Xa = kalman_pos.updateStepAcceleration(Xa,Ma);
+
+				//Update Gyroscope Kalman filter
+				if (useGyroScopes)
+				{
+					Xg = kalman_or.predictionStepOrientation(Xg);
+					Xg = kalman_or.updateStepOrientation(Xg, Mg);
+					Xg[0] = angleMod(Xg[0]);
+					Xg[1] = angleMod(Xg[1]);
+					Xg[2] = angleMod(Xg[2]);
+				}
+
+			}
+		}
+
+		public void triangulationRoutine()
+		{
+			while (notDestroyed) {
+
+				try {
+					if (led1)
+					{
+						PixyPosition1_1 = (cameraTriangulation.triangulation ((int)readPixies.LeftLedTracking [0].x,
+					                                                        (int)readPixies.LeftLedTracking   [0].y,
+					                                                        (int)readPixies.RightLedTracking  [0].x,
+					                                                        (int)readPixies.RightLedTracking  [0].y));
+					}
+					if (led2)
+					{
+						PixyPosition1_2 = (cameraTriangulation.triangulation ((int)readPixies.LeftLedTracking [1].x,
+						                                                    (int)readPixies.LeftLedTracking   [1].y,
+						                                                    (int)readPixies.RightLedTracking  [1].x,
+						                                                    (int)readPixies.RightLedTracking  [1].y));
+					}
+					if (led3)
+					{
+						PixyPosition2_1 = (cameraTriangulation.triangulation ((int)readPixies.LeftLedTracking [2].x,
+						                                                    (int)readPixies.LeftLedTracking   [2].y,
+						                                                    (int)readPixies.RightLedTracking  [2].x,
+						                                                    (int)readPixies.RightLedTracking  [2].y));
+
+					}
+					if (led4)
+					{
+						PixyPosition2_2 = (cameraTriangulation.triangulation ((int)readPixies.LeftLedTracking [3].x,
+						                                                    (int)readPixies.LeftLedTracking   [3].y,
+						                                                    (int)readPixies.RightLedTracking  [3].x,
+						                                                    (int)readPixies.RightLedTracking  [3].y));
+
+					}
+
+
+					// Update position estimates
+					if (led1 && led2)
+					{
+						stick1Location1 = (PixyPosition1_1 + PixyPosition1_2)/2.0f;
+						rotPixy1 = PixyPosition1_1 - PixyPosition1_2;
+					}
+					else if (led1)
+					{
+						stick1Location1 = PixyPosition1_1;
+					}
+
+					if (led3 && led4)
+					{
+						stick1Location2 = (PixyPosition2_1 + PixyPosition2_2)/2.0f;
+						rotPixy2 = PixyPosition2_1 - PixyPosition2_2;
+					}
+					else if (led3)
+					{
+						stick1Location2 = PixyPosition2_1;
+					}
+
+				}
+				catch{
+				}
+			}
+
+		}
+
+		public Matrix getStateMatrix()
+		{
+			return X;
+		}
+		
+
+		public float angleMod(float angle)
+		{
+			while(angle<0)
+			{
+				angle += 360;
+			}
+			while(angle>360)
+			{
+				angle -= 360;
+			}
+			
+			return angle;
+		}
+		
+		public float angleMod(double angle)
+		{
+			while(angle<0)
+			{
+				angle += 360;
+			}
+			while(angle>360)
+			{
+				angle -= 360;
+			}
+			
+			return (float)angle;
+		}
 	}
-*/
 }
