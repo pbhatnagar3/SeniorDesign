@@ -84,7 +84,7 @@ namespace SensorReadings{
 			int temp;
 			for (int i=0; i<expectedBytes; i+=4)
 			{
-				available[i/4]   = pixyData[i]==1f;
+				available[i/4]   = pixyData[i]== 1f;
 				//X scaling
 				locations[i/4].x = Xscale*pixyData[i+1] - locations_cal[i/4].x;
 				//Y scaling

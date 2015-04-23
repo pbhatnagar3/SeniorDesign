@@ -16,6 +16,15 @@ namespace PixyFileReader
 		//pixyDataAvailiable
 		bool pixyDataAvailiable = false;
 
+		public Program()
+		{
+			for (int i=0; i<4; i++) 
+			{
+				LeftLedTracking[i] = new Vector3(0,0,0);
+				RightLedTracking[i] = new Vector3(0,0,0);
+			}
+		}
+
 		public void readFile()
 		{
 			String leftFile = "C:/Users/shurjobanerjee/Documents/SeniorDesign-master/JUSTIN_YOU_SUCK/0.txt";
@@ -57,6 +66,7 @@ namespace PixyFileReader
 					RightLedTracking[index].x = System.Convert.ToInt32(rightDat[i+1]);
 					RightLedTracking[index].y = System.Convert.ToInt32(rightDat[i+2]);
 				}
+
 				pixyDataAvailiable = true;
 			}
 			catch (Exception ex)

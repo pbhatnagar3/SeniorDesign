@@ -18,7 +18,6 @@ public class PlaySound : MonoBehaviour {
 
 	void OnTriggerEnter(Collider other) {
 //		Destroy(other.gameObject);
-		Debug.Log ("Triggered");
 		play ();
 	}
 

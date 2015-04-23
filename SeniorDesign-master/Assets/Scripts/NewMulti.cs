@@ -22,13 +22,14 @@ namespace MultiThreadImplementation{
 
 		//Store Pixy positions
 		Vector3 PixyPosition1_1 = new Vector3 (0, 0, 0);
-		Vector3 PixyPosition1_2 = new Vector3 (0, 0, 0);
 		Vector3 PixyPosition2_1 = new Vector3 (0, 0, 0);
-		Vector3 PixyPosition2_2 = new Vector3 (0, 0, 0);
 
 		//Update final locations of sticks
 		public Vector3 stick1Location1 = new Vector3 (0, 0, 0);
 		public Vector3 stick1Location2 = new Vector3 (0, 0, 0);
+
+		public Vector3 originLocation1 = new Vector3 (0, 0, 0);
+		public Vector3 originLocation2 = new Vector3 (0, 0, 0);
 
 		//Pixy 
 		public Vector3 rotPixy1;
@@ -80,6 +81,9 @@ namespace MultiThreadImplementation{
 		SensorReadings.ReadSensors rs;
 
 		string code;
+
+		bool firstRead1 = true;
+		bool firstRead2 = true;
 
 		public NewMulti(Matrix X, Matrix M, double dt, Matrix iniVariancePos, Matrix iniVarianceBig,
 		                bool usePixy, bool useAccelerometer, bool useGyroScopes,
@@ -298,24 +302,25 @@ namespace MultiThreadImplementation{
 				try {
 					if (led1)
 					{
-						PixyPosition1_1 = (cameraTriangulation.triangulation ((int)readPixies.LeftLedTracking [0].x,
-					                                                        (int)readPixies.LeftLedTracking   [0].y,
-					                                                        (int)readPixies.RightLedTracking  [0].x,
-					                                                        (int)readPixies.RightLedTracking  [0].y));
+						if (!(readPixies.LeftLedTracking [0].x == 0 && readPixies.LeftLedTracking [0].y == 0
+						    && readPixies.RightLedTracking [0].x == 0 && readPixies.RightLedTracking [0].y == 0))
+							{
+								PixyPosition1_1 = (cameraTriangulation.triangulation ((int)readPixies.LeftLedTracking [0].x,
+							                                                        (int)readPixies.LeftLedTracking   [0].y,
+							                                                        (int)readPixies.RightLedTracking  [0].x,
+							                                                        (int)readPixies.RightLedTracking  [0].y));
+							}
 					}
 					if (led2)
 					{
-//						PixyPosition2_1 = (cameraTriangulation.triangulation ((int)readPixies.LeftLedTracking [1].x,
-//						                                                    (int)readPixies.LeftLedTracking   [1].y,
-//						                                                    (int)readPixies.RightLedTracking  [1].x,
-//						                                                    (int)readPixies.RightLedTracking  [1].y));
-
-
-
-						PixyPosition2_1 = (cameraTriangulation.triangulation ((int)readPixies.LeftLedTracking   [1].x,
-						                                                      (int)readPixies.LeftLedTracking   [1].y,
-						                                                      (int)readPixies.RightLedTracking  [1].x,
-						                                                      (int)readPixies.RightLedTracking  [1].y));
+						if (!(readPixies.LeftLedTracking [1].x == 0 && readPixies.LeftLedTracking [1].y == 0
+						      && readPixies.RightLedTracking [1].x == 0 && readPixies.RightLedTracking [1].y == 0))
+							{
+								PixyPosition2_1 = (cameraTriangulation.triangulation ((int)readPixies.LeftLedTracking   [1].x,
+								                                                      (int)readPixies.LeftLedTracking   [1].y,
+								                                                      (int)readPixies.RightLedTracking  [1].x,
+								                                                      (int)readPixies.RightLedTracking  [1].y));
+							}
 
 					}
 
@@ -325,15 +330,28 @@ namespace MultiThreadImplementation{
 
 					if (led1)
 					{
-						stick1Location1 = PixyPosition1_1;
+						stick1Location1 = PixyPosition1_1 - originLocation1;
+						if (firstRead1 && stick1Location1.x !=0 && stick1Location1.y !=0 && stick1Location1.z !=0 )
+						{
+							originLocation1 = stick1Location1;
+							firstRead1 = false;
+						}
+
 					}
-					else if (led2)
+					if (led2)
 					{
-						stick1Location2 = PixyPosition2_1;
+						stick1Location2 = PixyPosition2_1 - originLocation2;
+						if (firstRead2 && stick1Location2.x !=0 && stick1Location2.y !=0 && stick1Location2.z !=0)
+						{
+							originLocation2 = stick1Location2;
+							firstRead2 = false;
+						}
 					}
 
 				}
-				catch{
+				catch
+				{
+
 				}
 			}
 

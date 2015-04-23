@@ -53,7 +53,7 @@ namespace KalmanFilterImplementation
 		Matrix R;
 
 		Matrix Fo;
-		Matrix Ho;
+		Matrix Ho, Ha;
 		Matrix I;
 		double LastGain;
 
@@ -110,6 +110,10 @@ namespace KalmanFilterImplementation
 				               "0  0  0  0  1  0  0  0  0   \r\n   " +
 				               "0  0  0  0  0  1  0  0  0");
 
+			Ha = Matrix.Parse ("1  0  0  0  0  0  0  0  0   \r\n   " +
+			                   "0  1  0  0  0  0  0  0  0   \r\n   " +
+			                   "0  0  1  0  0  0  0  0  0");
+
 			//Identity matrix used by the program
 			I = Matrix.IdentityMatrix (9, 9);
 
@@ -117,6 +121,11 @@ namespace KalmanFilterImplementation
 		
 		public Matrix predictionStepOrientation(Matrix X) 
 		{
+			//Not considering acceleration
+			X [6] = 0;
+			X [7] = 0;
+			X [8] = 0;
+
 			//PREDICTION STEP
 			// X = F*X + H*U (U = 0 for now)
 			X = Fo*X;			
@@ -157,6 +166,39 @@ namespace KalmanFilterImplementation
 			P = (I - K * Ho) * P;
 
 
+			return X;
+		}
+
+		public Matrix updateStepAngles(Matrix X,Matrix Mangles)
+		{
+			//Measurement Step
+			// Y = M – H*X  
+			Y = Mangles - Ho * X;
+			
+			// S = H*P*H^T + R ---> R = 0 for now
+			S = Ho * P * Matrix.Transpose (Ho) + R;
+			
+			// K = P * H^T *S^-1 
+			Matrix tmp = P * Matrix.Transpose (Ho);
+			Matrix sinv;
+			try{
+				//				Debug.Log(S.ToString());
+				sinv = S.Invert();
+				K = tmp * sinv;
+			}
+			catch{
+				//determinant corresponding to Zero matrix
+				K = Matrix.ZeroMatrix(9,3);
+				Debug.Log ("Not Determinant");
+			}
+			
+			// X = X + K*Y
+			X = X + K * Y;
+			
+			// P = (I – K * H) * P
+			P = (I - K * Ho) * P;
+			
+			
 			return X;
 		}
 
