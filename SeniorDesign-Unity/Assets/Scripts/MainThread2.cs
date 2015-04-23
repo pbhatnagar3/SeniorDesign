@@ -4,7 +4,7 @@ using MultiThreadImplementation;
 using MatrixLibrary;
 using PixyFileReader;
 
-public class MainThread : MonoBehaviour {
+public class MainThread2 : MonoBehaviour {
 
 	int	POSX = 0, POSY = 1 , POSZ = 2, VELX = 3, VELY = 4, VELZ = 5,
 	ACCX = 6, ACCY = 7, ACCZ = 8, ANG_X = 9, ANG_Y = 10, ANG_Z = 11,
@@ -26,7 +26,6 @@ public class MainThread : MonoBehaviour {
 
 	//Stick details
 	Vector3 pos1 = new Vector3(0,0,0);
-	Vector3 pos2 = new Vector3 (0, 0, 0);
 
 	//Rotation
 	Vector3 euler1 = new Vector3(0,0,0);
@@ -85,9 +84,8 @@ public class MainThread : MonoBehaviour {
 		rb = GetComponent<Rigidbody>();
 		pos = rb.position;
 		pos1 = pos;
-		pos2 = pos;
 
-		iniPosition = new Vector3 (pos.x, pos.y, pos.z);
+		iniPosition = rb.position;
 
 		Matrix iniVariancePos = Matrix.ZeroMatrix(9, 9);
 		Matrix iniVarianceAng = Matrix.ZeroMatrix(9, 9);
@@ -127,7 +125,7 @@ public class MainThread : MonoBehaviour {
 		multi = new NewMulti (X, M, dt, iniVariancePos, iniVarianceBig,
 		                      usePixy, useAccelerometer,useGyroScopes,
 		                      led1, led2, led3, led4, r, q,
-		                      "COM5", "1");
+		                      "COM3", "0");
 
 		// Origin's original rotation  
 	}

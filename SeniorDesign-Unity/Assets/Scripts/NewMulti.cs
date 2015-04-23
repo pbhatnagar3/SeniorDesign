@@ -231,15 +231,15 @@ namespace MultiThreadImplementation{
 				//Update measurement vector
 				if(code.Equals ("1"))
 				{
-					M[POSX] = stick1Location1.x/-1000;
-					M[POSY] = stick1Location1.y/-1000;
-					M[POSZ] = stick1Location1.z/-1000;
+					M[POSX] = stick1Location1.x/-800;
+					M[POSY] = stick1Location1.y/-800;
+					M[POSZ] = stick1Location1.z/-800;
 				}
 				else if (code.Equals ("0"))
 				{
-					M[POSX] = stick1Location2.x/-1000;
-					M[POSY] = stick1Location2.y/-1000;
-					M[POSZ] = stick1Location2.z/-1000;
+					M[POSX] = stick1Location2.x/-800;
+					M[POSY] = stick1Location2.y/-800;
+					M[POSZ] = stick1Location2.z/-800;
 				}
 
 
@@ -330,7 +330,7 @@ namespace MultiThreadImplementation{
 
 					if (led1)
 					{
-						stick1Location1 = PixyPosition1_1 - originLocation1;
+						stick1Location1 = 2*PixyPosition1_1 - originLocation1;
 						if (firstRead1 && stick1Location1.x !=0 && stick1Location1.y !=0 && stick1Location1.z !=0 )
 						{
 							originLocation1 = stick1Location1;
